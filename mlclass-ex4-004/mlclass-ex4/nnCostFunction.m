@@ -44,12 +44,7 @@ h = X;
 h = sigmoid([ones(m, 1) h] * Theta1');
 h = sigmoid([ones(m, 1) h] * Theta2');
 y = eye(num_labels)(y, :);
-for i = 1:m
-	for k = 1:num_labels
-		J = J + y(i, k) * log(h(i, k)) + (1 - y(i, k)) * log(1 - h(i, k));
-	end
-end
-J = J * (-1 / m);
+J = (-1 / m) * sum(sum(y .* log(h) + (1 - y) .* log(1 - h)));
 
 % Part 2: Implement the backpropagation algorithm to compute the gradients
 %         Theta1_grad and Theta2_grad. You should return the partial derivatives of

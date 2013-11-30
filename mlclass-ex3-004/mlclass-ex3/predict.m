@@ -23,9 +23,8 @@ p = zeros(size(X, 1), 1);
 
 
 % Add ones to the X data matrix
-X = [ones(m, 1) X];
-
-A = sigmoid(X * Theta1');
+A = X;
+A = sigmoid([ones(m, 1) A] * Theta1');
 A = sigmoid([ones(m, 1) A] * Theta2');
 [values, p] = max(A, [], 2);
 
