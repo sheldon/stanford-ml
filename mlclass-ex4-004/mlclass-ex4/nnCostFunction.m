@@ -24,7 +24,6 @@ Theta2 = reshape(nn_params((1 + (hidden_layer_size * (input_layer_size + 1))):en
 
 % Setup some useful variables
 m = size(X, 1);
-
 % You need to return the following variables correctly
 J = 0;
 Theta1_grad = zeros(size(Theta1));
@@ -40,11 +39,15 @@ Theta2_grad = zeros(size(Theta2));
 %         computed in ex4.m
 %
 
-h = X;
-h = sigmoid([ones(m, 1) h] * Theta1');
-h = sigmoid([ones(m, 1) h] * Theta2');
+% convert y to logical array
 y = eye(num_labels)(y, :);
-J = (-1 / m) * sum(sum(y .* log(h) + (1 - y) .* log(1 - h)));
+
+z_2 = [ones(m, 1) X] * Theta1';
+a_2 = [ones(m, 1) sigmoid(z_2)];
+z_3 = a_2 * Theta2';
+a_3 = sigmoid(z_3);
+
+J = (-1 / m) * sum(sum(y .* log(a_3) + (1 - y) .* log(1 - a_3))) + (lambda / (2 * m)) * (sum(sum(Theta1(:, 2:end) .^ 2)) + sum(sum(Theta2(:, 2:end) .^ 2)));
 
 % Part 2: Implement the backpropagation algorithm to compute the gradients
 %         Theta1_grad and Theta2_grad. You should return the partial derivatives of
@@ -61,6 +64,33 @@ J = (-1 / m) * sum(sum(y .* log(h) + (1 - y) .* log(1 - h)));
 %               over the training examples if you are implementing it for the
 %               first time.
 %
+
+Delta_1 = zeros(size(Theta1));
+Delta_2 = zeros(size(Theta2));
+
+for t = 1:m
+	a_1 = X(t, :);
+	a_1 = [1, a_1];
+	z_2 = a_1 * Theta1';
+	a_2 = [1, sigmoid(z_2)];
+	z_3 = a_2 * Theta2';
+	a_3 = sigmoid(z_3);
+
+	for k = 1:num_labels
+		delta_3(k) = a_3(k) - y(t, k);
+	end
+
+	delta_2 = Theta2' * delta_3';
+	delta_2 = delta_2(2:end);
+	delta_2 = delta_2 .* sigmoidGradient(z_2)';
+
+	Delta_1 = Delta_1 + delta_2 * a_1;
+	Delta_2 = Delta_2 + delta_3' * a_2;
+end
+
+Theta1_grad = Delta_1 / m;
+Theta2_grad = Delta_2 / m;
+
 % Part 3: Implement regularization with the cost function and gradients.
 %
 %         Hint: You can implement this around the code for
@@ -70,8 +100,10 @@ J = (-1 / m) * sum(sum(y .* log(h) + (1 - y) .* log(1 - h)));
 %
 
 
-
-
+Theta1(:, 1) = 0;
+Theta2(:, 1) = 0;
+Theta1_grad = Theta1_grad + (lambda / m) * Theta1;
+Theta2_grad = Theta2_grad + (lambda / m) * Theta2;
 
 
 
